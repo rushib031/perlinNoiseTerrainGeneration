@@ -15,6 +15,9 @@ public class MeshGenerator : MonoBehaviour
     public int xSize = 20;
     public int zSize = 20;
 
+    public float scale = 2f;
+    public float waveHeight = 4f;
+
     void Start()
     {
         mesh = new Mesh();
@@ -33,7 +36,13 @@ public class MeshGenerator : MonoBehaviour
         {
             for (int x = 0; x <= xSize; x++)
             {
-                float y = 0; // Flat for now
+                float xCoord = (float)x / xSize * scale;
+                float zCoord = (float)z / zSize * scale;
+
+                // Calculate Y
+                // PerlinNoise returns 0.0 to 1.0. We multiply by waveHeight to make it taller.
+                
+                float y = Mathf.PerlinNoise(xCoord, zCoord) * waveHeight;
                 vertices[i] = new Vector3(x, y, z);
                 i++;
             }
