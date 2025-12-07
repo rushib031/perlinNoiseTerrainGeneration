@@ -7,9 +7,11 @@ using UnityEngine;
 public class MeshGenerator : MonoBehaviour
 {
     Mesh mesh;
+    MeshRenderer meshRenderer;
 
     Vector3[] vertices;
     int[] triangles;
+    Vector2[] uvs;
 
     // Grid settings
     public int xSize = 20;
@@ -18,19 +20,35 @@ public class MeshGenerator : MonoBehaviour
     public float scale = 2f;
     public float waveHeight = 4f;
 
+    public Gradient gradient;
+    float minTerrainHeight;
+    float maxTerrainHeight;
+
     void Start()
     {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
+        meshRenderer = GetComponent<MeshRenderer>();
 
+        CreateShape();
+        UpdateMesh();
+    }
+
+    // created this to see real time updates
+    void Update()
+    {
         CreateShape();
         UpdateMesh();
     }
 
     void CreateShape()
     {
-        // 1. Create the Vertices (The dots)
+        // creating the Vertices
         vertices = new Vector3[(xSize + 1) * (zSize + 1)];
+        uvs = new Vector2[vertices.Length];
+
+        minTerrainHeight = float.MaxValue;
+        maxTerrainHeight = float.MinValue;
 
         for (int i = 0, z = 0; z <= zSize; z++)
         {
@@ -39,16 +57,26 @@ public class MeshGenerator : MonoBehaviour
                 float xCoord = (float)x / xSize * scale;
                 float zCoord = (float)z / zSize * scale;
 
-                // Calculate Y
-                // PerlinNoise returns 0.0 to 1.0. We multiply by waveHeight to make it taller.
-                
+                // PerlinNoise returns 0.0 to 1.0 so waveHeight is mutliplies to make it taller
+
                 float y = Mathf.PerlinNoise(xCoord, zCoord) * waveHeight;
                 vertices[i] = new Vector3(x, y, z);
+
+                if (y > maxTerrainHeight)
+                {
+                    maxTerrainHeight = y;
+                }
+
+                if (y < minTerrainHeight)
+                {
+                    minTerrainHeight = y;
+                }
+                uvs[i] = new Vector2((float)x / xSize, (float)z / zSize);
                 i++;
             }
         }
 
-        // 2. Create the Triangles (The connections)
+        // creating the triangles
         triangles = new int[xSize * zSize * 6];
 
         int vert = 0;
@@ -80,6 +108,27 @@ public class MeshGenerator : MonoBehaviour
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = triangles;
-        mesh.RecalculateNormals(); // Crucial for lighting
+        mesh.uv = uvs;
+        mesh.RecalculateNormals(); 
+
+        ApplyColor();
+    }
+
+    void ApplyColor()
+    {
+        Texture2D texture = new Texture2D(xSize + 1, zSize + 1);
+        Color[] colorMap = new Color[(xSize + 1) * (zSize + 1)];
+        for (int i = 0, z = 0; z <= zSize; z++)
+        {
+            for (int x = 0; x <= xSize; x++)
+            {
+                float height = Mathf.InverseLerp(minTerrainHeight, maxTerrainHeight, vertices[i].y);
+                colorMap[i] = gradient.Evaluate(height);
+                i++;
+            }
+        }
+        texture.SetPixels(colorMap);
+        texture.Apply();
+        GetComponent<MeshRenderer>().material.mainTexture = texture;
     }
 }
