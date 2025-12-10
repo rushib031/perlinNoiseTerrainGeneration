@@ -14,8 +14,8 @@ public class MeshGenerator : MonoBehaviour
     Vector2[] uvs;
 
     // Grid settings
-    public int xSize = 20;
-    public int zSize = 20;
+    public int xSize = 100;
+    public int zSize = 100;
 
     public float scale = 2f;
     public float waveHeight = 4f;
