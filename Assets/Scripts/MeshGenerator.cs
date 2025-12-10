@@ -129,9 +129,10 @@ public class MeshGenerator : MonoBehaviour
         // checking if water already exists, if not, create it
         if (waterMesh == null)
         {
-            waterMesh = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            waterMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
             waterMesh.name = "Water";
             waterMesh.transform.parent = this.transform;
+            
             
             // remove the collider so the player can swim/walk through it
             Destroy(waterMesh.GetComponent<Collider>()); 
@@ -141,13 +142,14 @@ public class MeshGenerator : MonoBehaviour
 
         float xCenter = xSize / 2f;
         float zCenter = zSize / 2f;
-        
+        float waterSurfaceY = Mathf.Lerp(minTerrainHeight, maxTerrainHeight, waterLevel);
+        float waterDepth = 50f;
+
         float waterY = Mathf.Lerp(minTerrainHeight, maxTerrainHeight, waterLevel);
 
-        waterMesh.transform.position = new Vector3(xCenter, waterY, zCenter);
+        waterMesh.transform.position = new Vector3(xCenter, waterSurfaceY - (waterDepth / 2f), zCenter);
 
-        // since a plane is 10 units big, we divide our size by 10.
-        waterMesh.transform.localScale = new Vector3(xSize / 10f, 1f, zSize / 10f);
+        waterMesh.transform.localScale = new Vector3(xSize, waterDepth, zSize);
     }
 
     void ApplyColor()
