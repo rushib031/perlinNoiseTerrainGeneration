@@ -24,6 +24,11 @@ public class MeshGenerator : MonoBehaviour
     float minTerrainHeight;
     float maxTerrainHeight;
 
+    [Header("Water Settings")]
+    public float waterLevel = 0.4f; 
+    public Material waterMaterial;  
+    GameObject waterMesh;
+
     void Start()
     {
         mesh = new Mesh();
@@ -112,10 +117,37 @@ public class MeshGenerator : MonoBehaviour
         mesh.RecalculateNormals(); 
 
         ApplyColor();
+        CreateWater();
 
         MeshCollider meshCollider = gameObject.GetComponent<MeshCollider>();
         if (meshCollider == null) meshCollider = gameObject.AddComponent<MeshCollider>();
         meshCollider.sharedMesh = mesh;
+    }
+
+    void CreateWater()
+    {
+        // checking if water already exists, if not, create it
+        if (waterMesh == null)
+        {
+            waterMesh = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            waterMesh.name = "Water";
+            waterMesh.transform.parent = this.transform;
+            
+            // remove the collider so the player can swim/walk through it
+            Destroy(waterMesh.GetComponent<Collider>()); 
+            
+            waterMesh.GetComponent<Renderer>().material = waterMaterial;
+        }
+
+        float xCenter = xSize / 2f;
+        float zCenter = zSize / 2f;
+        
+        float waterY = Mathf.Lerp(minTerrainHeight, maxTerrainHeight, waterLevel);
+
+        waterMesh.transform.position = new Vector3(xCenter, waterY, zCenter);
+
+        // since a plane is 10 units big, we divide our size by 10.
+        waterMesh.transform.localScale = new Vector3(xSize / 10f, 1f, zSize / 10f);
     }
 
     void ApplyColor()
