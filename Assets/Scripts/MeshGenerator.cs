@@ -112,6 +112,10 @@ public class MeshGenerator : MonoBehaviour
         mesh.RecalculateNormals(); 
 
         ApplyColor();
+
+        MeshCollider meshCollider = gameObject.GetComponent<MeshCollider>();
+        if (meshCollider == null) meshCollider = gameObject.AddComponent<MeshCollider>();
+        meshCollider.sharedMesh = mesh;
     }
 
     void ApplyColor()
