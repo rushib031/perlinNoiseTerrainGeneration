@@ -6,14 +6,34 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Settings")]
     public float moveSpeed = 6f;
-    public float mouseSensitivity = 0.1f; 
+    public float mouseSensitivity = 0.07f; 
     public float gravity = -9.81f;
 
     CharacterController controller;
     Transform cameraTransform;
     
+    GameControls inputActions;
+
+    Vector2 moveInput;
+    Vector2 lookInput;
+
+
     Vector3 velocity;
     float xRotation = 0f;
+
+    void Awake()
+    {
+        inputActions = new GameControls();
+
+        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero; 
+
+        inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
+    }
+
+    void OnEnable() => inputActions.Enable();
+    void OnDisable() => inputActions.Disable();
 
     void Start()
     {
@@ -24,10 +44,10 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
     }
 
+
+
     void Update()
     {
-        if (Keyboard.current == null || Mouse.current == null) return;
-
         HandleMouseLook();
         HandleMovement();
     }
@@ -36,30 +56,19 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 mouseDelta = Mouse.current.delta.ReadValue();
 
-        float mouseX = mouseDelta.x * mouseSensitivity;
-        float mouseY = mouseDelta.y * mouseSensitivity;
+        float mouseX = lookInput.x * mouseSensitivity;
+        float mouseY = lookInput.y * mouseSensitivity;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // roating players Body Left/Right (Yaw)
         transform.Rotate(Vector3.up * mouseX);
     }
 
     void HandleMovement()
     {
-        float x = 0;
-        float z = 0;
-
-        if (Keyboard.current.wKey.isPressed) z += 1;
-        if (Keyboard.current.sKey.isPressed) z -= 1;
-        if (Keyboard.current.aKey.isPressed) x -= 1;
-        if (Keyboard.current.dKey.isPressed) x += 1;
-
-        // creating and applying movement vector
-        Vector3 move = transform.right * x + transform.forward * z;
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
 
         controller.Move(move * moveSpeed * Time.deltaTime);
 

@@ -9,11 +9,13 @@ public class MeshGenerator : MonoBehaviour
     Mesh mesh;
     MeshRenderer meshRenderer;
 
+    public Vector2 offset;
+
     Vector3[] vertices;
     int[] triangles;
     Vector2[] uvs;
 
-    // Grid settings
+    // grid settings
     public int xSize = 100;
     public int zSize = 100;
 
@@ -29,7 +31,7 @@ public class MeshGenerator : MonoBehaviour
     public Material waterMaterial;  
     GameObject waterMesh;
 
-    void Start()
+    public void Init()
     {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
@@ -59,8 +61,8 @@ public class MeshGenerator : MonoBehaviour
         {
             for (int x = 0; x <= xSize; x++)
             {
-                float xCoord = (float)x / xSize * scale;
-                float zCoord = (float)z / zSize * scale;
+                float xCoord = ((float)x + offset.x) / xSize * scale;
+                float zCoord = ((float)z + offset.y) / zSize * scale;
 
                 // PerlinNoise returns 0.0 to 1.0 so waveHeight is mutliplies to make it taller
 
@@ -147,7 +149,7 @@ public class MeshGenerator : MonoBehaviour
 
         float waterY = Mathf.Lerp(minTerrainHeight, maxTerrainHeight, waterLevel);
 
-        waterMesh.transform.position = new Vector3(xCenter, waterSurfaceY - (waterDepth / 2f), zCenter);
+        waterMesh.transform.localPosition = new Vector3(xCenter, waterSurfaceY - (waterDepth / 2f), zCenter);
 
         waterMesh.transform.localScale = new Vector3(xSize, waterDepth, zSize);
     }
